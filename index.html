@@ -1,0 +1,185 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Script para CMSP</title>
+    <link rel="stylesheet" href="css/global.css">
+    <script src="js/adsbygoogle.js" crossorigin="anonymous"></script>
+    <script src="js/api.js" async defer></script>
+    <script src="js/script.js" defer></script>
+    <style>
+        /* Estilo para notificações */
+        .notification {
+            position: fixed;
+            right: -320px;
+            background-color: #333;
+            color: #fff;
+            padding: 10px;
+            border-radius: 10px;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.5);
+            z-index: 1000;
+            width: 320px;
+            height: 60px;
+            transition: right 0.5s ease;
+        }
+        .notification-content {
+            position: relative;
+            height: 100%;
+        }
+        .close-btn {
+            position: absolute;
+            top: 5px;
+            right: 10px;
+            cursor: pointer;
+            font-size: 20px;
+        }
+        .notification-content p {
+            margin: 0;
+            padding-top: 0;
+        }
+        .progress-bar {
+            position: absolute;
+            bottom: 5px;
+            left: 50%;
+            transform: translateX(-50%);
+            height: 5px;
+            background-color: #555;
+            border-radius: 5px;
+            width: 90%;
+            overflow: hidden;
+        }
+        .progress-bar div {
+            height: 100%;
+            background-color: #bbb;
+            width: 100%;
+            animation: progress 5s linear forwards;
+        }
+        @keyframes progress {
+            from {
+                width: 100%;
+            }
+            to {
+                width: 0;
+            }
+        }
+    </style>
+</head>
+<body>
+    <h1 class="large-text">Script para CMSP</h1>
+
+    <div class="centered">
+        <div class="group">
+            <input type="text" id="name" required>
+            <label for="RA">RA + dígito + UF</label>
+            <div class="bar"></div>
+        </div>
+        <div class="group">
+            <input type="password" id="password" required>
+            <label for="RA">Senha</label>
+            <div class="bar"></div>
+        </div>
+
+        <div class="h-captcha" data-sitekey="03b2d394-013a-46fc-a3f2-1b06625e021a" id="hcaptcha"></div>
+
+        <div class="button-group">
+            <input type="button" value="Fazer Lições Normais" onclick="verifyCaptcha('fazerlicaonormal')">
+            <input type="button" value="Fazer Lições Atrasadas" onclick="verifyCaptcha('fazerlicaoatrasada')">
+        </div>
+    </div>
+
+    <footer>
+        <p class="medium-text">Skibidi rizz, Contato: enfieh@proton.me | OBS: Infelizmente isso não funciona em prova paulista e nem redação :(</p>
+    </footer>
+
+    <script>
+        let notificationCount = 0;
+
+        function createAndShowNotification(message) {
+            return new Promise((resolve) => {
+                const notification = document.createElement("div");
+                notification.className = "notification";
+                notification.style.bottom = `${20 + (notificationCount * 70)}px`;
+                notification.style.right = "20px";
+                notification.innerHTML = `
+                    <div class="notification-content">
+                        <span class="close-btn">&times;</span>
+                        <p>${message}</p>
+                        <div class="progress-bar"><div></div></div>
+                    </div>
+                `;
+                document.body.appendChild(notification);
+
+                const closeButton = notification.querySelector(".close-btn");
+                closeButton.onclick = function() {
+                    notification.style.right = "-300px";
+                    setTimeout(() => {
+                        notification.remove();
+                        notificationCount--;
+                        resolve();
+                    }, 500);
+                };
+
+                setTimeout(() => {
+                    notification.style.right = "20px";
+                }, 10);
+
+                setTimeout(() => {
+                    notification.style.right = "-300px";
+                    setTimeout(() => {
+                        notification.remove();
+                        notificationCount--;
+                        resolve();
+                    }, 500);
+                }, 5000);
+
+                notificationCount++;
+            });
+        }
+
+        async function verifyCaptcha(funcName) {
+            const hcaptchaResponse = hcaptcha.getResponse();
+
+            if (hcaptchaResponse.length === 0) {
+                alert('Por favor, complete o captcha.');
+            } else {
+                const name = document.getElementById('name').value;
+                const password = document.getElementById('password').value;
+
+                try {
+                    const response = await fetch('https://guiguiv2tes.vercel.app/verify-captcha', {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                        },
+                        body: JSON.stringify({
+                            'h-captcha-response': hcaptchaResponse,
+                        }),
+                    });
+
+                    if (response.ok) {
+                        const key = await response.text();
+
+                        if (funcName === 'fazerlicaonormal') {
+                            fazerlicaonormal(name, password, key);
+                        } else if (funcName === 'fazerlicaoatrasada') {
+                            fazerlicaoatrasada(name, password, key);
+                        }
+                    } else {
+                        alert('Verificação do captcha falhou.');
+                    }
+                } catch (error) {
+                    console.error('Erro ao verificar o captcha:', error);
+                    alert('Erro ao verificar o captcha.');
+                }
+
+                hcaptcha.reset();
+            }
+        }
+
+        // Funções de fazer lições (fazerlicaonormal e fazerlicaoatrasada) aqui...
+        // Coloque as funções que você já possui (fazerlicaonormal, fazerlicaoatrasada) abaixo
+        // Certifique-se de que elas utilizem a função createAndShowNotification para exibir mensagens
+    </script>
+</body>
+</html>
